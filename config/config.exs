@@ -10,7 +10,7 @@ use Mix.Config
 config :review_server,
   ecto_repos: [ReviewServer.Repo]
 
-config :review_server, ReviewServer.Repo, migration_timestamps: [type: :utc_datetime_usec]
+config :review_server, ReviewServer.Repo, migration_timestamps: [type: :timestamptz]
 
 # Configures the endpoint
 config :review_server, ReviewServerWeb.Endpoint,

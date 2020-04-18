@@ -3,7 +3,7 @@ defmodule ReviewServer.Schema.Base do
   Every schema file should use this module.
 
   ## Examples
-      defmodule ReviewServer.Schema.Random
+      defmodule RandomModel
         use ReviewServer.Schema.Base
 
         # ...

@@ -43,7 +43,8 @@ defmodule ReviewServer.MixProject do
       {:plug_cowboy, "~> 2.0"},
 
       # Added deps
-      {:exconstructor, "~> 1.1"}
+      {:exconstructor, "~> 1.1"},
+      {:scrivener_ecto, "~> 2.3"}
 
       # Test deps
     ]

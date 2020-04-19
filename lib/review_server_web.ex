@@ -24,6 +24,8 @@ defmodule ReviewServerWeb do
       import Plug.Conn
       import ReviewServerWeb.Gettext
       alias ReviewServerWeb.Router.Helpers, as: Routes
+
+      import ReviewServer.Utils.Pagination
     end
   end
 

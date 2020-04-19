@@ -15,4 +15,9 @@ defmodule ReviewServerWeb.ReviewController do
         {:error, form}
     end
   end
+
+  def show(conn, %{"id" => id}) do
+    review = ReviewServer.Repo.get!(Review, id)
+    render(conn, "show.json", review: review)
+  end
 end

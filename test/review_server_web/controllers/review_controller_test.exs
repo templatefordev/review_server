@@ -70,4 +70,46 @@ defmodule ReviewServerWeb.ReviewControllerTest do
              }
     end
   end
+
+  describe "show/2" do
+    test "renders review if the review is found", %{conn: conn} do
+      review = insert!(:review)
+
+      conn = get(conn, Routes.review_path(conn, :show, review.id))
+
+      assert json_response(conn, 200) == %{
+               "review" => %{
+                 "id" => review.id,
+                 "rating" => review.rating,
+                 "comment" => review.comment,
+                 "resource_id" => review.resource_id,
+                 "owner_id" => review.owner_id,
+                 "inserted_at" => DateTime.to_iso8601(review.inserted_at),
+                 "updated_at" => DateTime.to_iso8601(review.updated_at)
+               }
+             }
+    end
+
+    test "renders with a message indicating review not found", %{conn: conn} do
+      error_message = Jason.encode!(%{errors: %{detail: "Not Found"}})
+
+      response =
+        assert_error_sent 404, fn ->
+          get(conn, Routes.review_path(conn, :show, Ecto.UUID.generate()))
+        end
+
+      assert {404, [_h | _t], ^error_message} = response
+    end
+
+    test "renders with a bad request message if id not uuid", %{conn: conn} do
+      error_message = Jason.encode!(%{errors: %{detail: "Bad Request"}})
+
+      response =
+        assert_error_sent 400, fn ->
+          get(conn, Routes.review_path(conn, :show, "123"))
+        end
+
+      assert {400, [_h | _t], ^error_message} = response
+    end
+  end
 end

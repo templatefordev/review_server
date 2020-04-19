@@ -25,6 +25,8 @@ defmodule ReviewServerWeb.ConnCase do
 
       # The default endpoint for testing
       @endpoint ReviewServerWeb.Endpoint
+
+      import ReviewServer.Factory
     end
   end
 

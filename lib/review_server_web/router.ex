@@ -7,5 +7,7 @@ defmodule ReviewServerWeb.Router do
 
   scope "/api", ReviewServerWeb do
     pipe_through :api
+
+    resources "/reviews", ReviewController, except: [:new, :edit]
   end
 end

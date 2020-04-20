@@ -26,6 +26,7 @@ defmodule ReviewServerWeb do
       alias ReviewServerWeb.Router.Helpers, as: Routes
 
       import ReviewServer.Utils.Pagination
+      alias ReviewServer.Repo
     end
   end
 

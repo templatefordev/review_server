@@ -251,4 +251,40 @@ defmodule ReviewServerWeb.ReviewControllerTest do
       assert {404, [_h | _t], ^error_message} = response
     end
   end
+
+  describe "delete/2 reviews by resource_id" do
+    setup do
+      [review | _] =
+        Enum.map(1..10, fn _ ->
+          insert!(:review, resource_id: "e31e9137-97f5-497e-bcd2-34c35169a883")
+        end)
+
+      {:ok, review: review}
+    end
+
+    test "deletes all reviews by resource_id", %{
+      conn: conn,
+      review: %Review{resource_id: resource_id}
+    } do
+      conn = delete(conn, Routes.review_delete_all_path(conn, :delete), resource_id: resource_id)
+      assert response(conn, 204)
+
+      conn = get(conn, Routes.review_path(conn, :index), resource_id: resource_id)
+
+      assert json_response(conn, 200)["reviews"] == []
+    end
+
+    test "renders with a message indicating reviews by resource_id not found", %{conn: conn} do
+      error_message = Jason.encode!(%{errors: %{detail: "Not Found"}})
+
+      response =
+        assert_error_sent 404, fn ->
+          delete(conn, Routes.review_delete_all_path(conn, :delete),
+            resource_id: Ecto.UUID.generate()
+          )
+        end
+
+      assert {404, [_h | _t], ^error_message} = response
+    end
+  end
 end

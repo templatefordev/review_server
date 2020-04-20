@@ -1,10 +1,8 @@
-defmodule Queries.ListReviews do
+defmodule Queries.DeleteReviews do
   use ReviewServer.Queries.Base
 
   defmodule Params do
-    defstruct resource_id: nil,
-              page: nil,
-              page_size: nil
+    defstruct resource_id: nil
 
     use ExConstructor
   end
@@ -13,6 +11,6 @@ defmodule Queries.ListReviews do
     params
     |> Params.new()
     |> list_reviews_query()
-    |> order_by(desc: :inserted_at)
+    |> first()
   end
 end

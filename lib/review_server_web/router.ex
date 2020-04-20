@@ -9,5 +9,6 @@ defmodule ReviewServerWeb.Router do
     pipe_through :api
 
     resources "/reviews", ReviewController, except: [:new, :edit]
+    delete "/reviews", ReviewController, :delete, as: :review_delete_all
   end
 end

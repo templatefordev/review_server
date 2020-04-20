@@ -8,7 +8,7 @@ defmodule ReviewServerWeb.ReviewController do
 
     case form.valid? do
       true ->
-        page = Queries.ListReviews.call(form.changes)
+        page = Queries.ListReviews.call(form.changes) |> Repo.paginate(params)
         render(conn, "index.json", reviews: page.entries, meta: build_meta(page))
 
       false ->
@@ -17,7 +17,7 @@ defmodule ReviewServerWeb.ReviewController do
   end
 
   def show(conn, %{"id" => id}) do
-    review = ReviewServer.Repo.get!(Review, id)
+    review = Repo.get!(Review, id)
     render(conn, "show.json", review: review)
   end
 
@@ -33,7 +33,7 @@ defmodule ReviewServerWeb.ReviewController do
   end
 
   def update(conn, %{"id" => id, "review" => review_params}) do
-    review = ReviewServer.Repo.get!(Review, id)
+    review = Repo.get!(Review, id)
     form = Forms.UpdateReview.changeset(review_params)
 
     with {:ok, %Review{} = review} <- Commands.UpdateReview.call(form, %{review: review}) do
@@ -42,9 +42,17 @@ defmodule ReviewServerWeb.ReviewController do
   end
 
   def delete(conn, %{"id" => id}) do
-    review = ReviewServer.Repo.get!(Review, id)
+    review = Repo.get!(Review, id)
 
     with {:ok, %Review{}} <- Commands.DeleteReview.call(%{review: review}) do
+      send_resp(conn, :no_content, "")
+    end
+  end
+
+  def delete(conn, %{"resource_id" => resource_id}) do
+    _review = Queries.DeleteReviews.call(%{resource_id: resource_id}) |> Repo.one!()
+
+    with {_, nil} <- Commands.DeleteReview.call(%{resource_id: resource_id}) do
       send_resp(conn, :no_content, "")
     end
   end

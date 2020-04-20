@@ -7,6 +7,10 @@ defmodule ReviewServerWeb.ReviewControllerTest do
     resource_id: "e31e9137-97f5-497e-bcd2-34c35169a883",
     owner_id: "7488a646-e31f-11e4-aace-600308960662"
   }
+  @update_attrs %{
+    rating: 5,
+    comment: "some updated comment"
+  }
   @invalid_attrs %{rating: nil, comment: nil, resource_id: nil, owner_id: nil}
 
   setup %{conn: conn} do
@@ -166,6 +170,59 @@ defmodule ReviewServerWeb.ReviewControllerTest do
                "resource_id" => ["is invalid"],
                "owner_id" => ["is invalid"]
              } = json_response(conn, 422)["errors"]
+    end
+  end
+
+  describe "update/2" do
+    setup do
+      {:ok, review: insert!(:review)}
+    end
+
+    test "renders review when data is valid", %{conn: conn, review: %Review{id: id} = review} do
+      conn = put(conn, Routes.review_path(conn, :update, review), review: @update_attrs)
+
+      assert %{
+               "id" => ^id,
+               "rating" => 5,
+               "comment" => "some updated comment",
+               "resource_id" => resource_id,
+               "owner_id" => owner_id,
+               "inserted_at" => inserted_at,
+               "updated_at" => updated_at
+             } = json_response(conn, 200)["review"]
+    end
+
+    test "renders with a message indicating review not found", %{conn: conn} do
+      error_message = Jason.encode!(%{errors: %{detail: "Not Found"}})
+
+      response =
+        assert_error_sent 404, fn ->
+          get(conn, Routes.review_path(conn, :show, Ecto.UUID.generate()))
+        end
+
+      assert {404, [_h | _t], ^error_message} = response
+    end
+
+    test "renders errors when rating is less than 1", %{conn: conn, review: review} do
+      conn =
+        put(conn, Routes.review_path(conn, :update, review), review: %{@update_attrs | rating: 0})
+
+      assert %{"rating" => ["must be greater than 0"]} = json_response(conn, 422)["errors"]
+    end
+
+    test "renders errors when rating is greater than 5", %{conn: conn, review: review} do
+      conn =
+        put(conn, Routes.review_path(conn, :update, review), review: %{@update_attrs | rating: 6})
+
+      assert %{"rating" => ["must be less than 6"]} = json_response(conn, 422)["errors"]
+    end
+
+    test "renders errors when data is invalid", %{conn: conn, review: review} do
+      conn = put(conn, Routes.review_path(conn, :update, review), review: @invalid_attrs)
+
+      assert json_response(conn, 422)["errors"] == %{
+               "rating" => ["can't be blank"]
+             }
     end
   end
 end

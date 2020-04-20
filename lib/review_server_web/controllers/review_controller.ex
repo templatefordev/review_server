@@ -37,4 +37,13 @@ defmodule ReviewServerWeb.ReviewController do
         {:error, form}
     end
   end
+
+  def update(conn, %{"id" => id, "review" => review_params}) do
+    review = ReviewServer.Repo.get!(Review, id)
+    form = Forms.UpdateReview.changeset(review_params)
+
+    with {:ok, %Review{} = review} <- Commands.UpdateReview.call(form, %{review: review}) do
+      render(conn, "show.json", review: review)
+    end
+  end
 end

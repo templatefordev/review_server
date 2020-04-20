@@ -13,6 +13,10 @@ defmodule ReviewServer.Commands.Base do
   defmacro __using__(_) do
     quote do
       alias ReviewServer.Repo
+      import Ecto.Changeset
+
+      def call(%{valid?: false} = form), do: {:error, form}
+      def call(%{valid?: false} = form, _), do: {:error, form}
     end
   end
 end

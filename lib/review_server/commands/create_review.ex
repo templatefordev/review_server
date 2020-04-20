@@ -1,7 +1,7 @@
 defmodule Commands.CreateReview do
   use ReviewServer.Commands.Base
 
-  def call(args) do
+  def call(%{changes: args}) do
     Review
     |> struct(args)
     |> Repo.insert()

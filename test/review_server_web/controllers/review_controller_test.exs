@@ -225,4 +225,30 @@ defmodule ReviewServerWeb.ReviewControllerTest do
              }
     end
   end
+
+  describe "delete/2 review" do
+    setup do
+      {:ok, review: insert!(:review)}
+    end
+
+    test "deletes chosen review", %{conn: conn, review: review} do
+      conn = delete(conn, Routes.review_path(conn, :delete, review))
+      assert response(conn, 204)
+
+      assert_error_sent 404, fn ->
+        get(conn, Routes.review_path(conn, :show, review))
+      end
+    end
+
+    test "renders with a message indicating review not found", %{conn: conn} do
+      error_message = Jason.encode!(%{errors: %{detail: "Not Found"}})
+
+      response =
+        assert_error_sent 404, fn ->
+          delete(conn, Routes.review_path(conn, :delete, Ecto.UUID.generate()))
+        end
+
+      assert {404, [_h | _t], ^error_message} = response
+    end
+  end
 end

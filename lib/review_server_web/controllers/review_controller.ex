@@ -40,4 +40,12 @@ defmodule ReviewServerWeb.ReviewController do
       render(conn, "show.json", review: review)
     end
   end
+
+  def delete(conn, %{"id" => id}) do
+    review = ReviewServer.Repo.get!(Review, id)
+
+    with {:ok, %Review{}} <- Commands.DeleteReview.call(%{review: review}) do
+      send_resp(conn, :no_content, "")
+    end
+  end
 end

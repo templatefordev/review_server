@@ -1,6 +1,14 @@
 defmodule ReviewServerWeb.ReviewControllerTest do
   use ReviewServerWeb.ConnCase
 
+  @create_attrs %{
+    rating: 1,
+    comment: "some comment",
+    resource_id: "e31e9137-97f5-497e-bcd2-34c35169a883",
+    owner_id: "7488a646-e31f-11e4-aace-600308960662"
+  }
+  @invalid_attrs %{rating: nil, comment: nil, resource_id: nil, owner_id: nil}
+
   setup %{conn: conn} do
     {:ok, conn: put_req_header(conn, "accept", "application/json")}
   end
@@ -110,6 +118,54 @@ defmodule ReviewServerWeb.ReviewControllerTest do
         end
 
       assert {400, [_h | _t], ^error_message} = response
+    end
+  end
+
+  describe "create/2" do
+    test "renders review when data is valid", %{conn: conn} do
+      conn = post(conn, Routes.review_path(conn, :create), review: @create_attrs)
+
+      assert %{
+               "id" => id,
+               "rating" => 1,
+               "comment" => "some comment",
+               "resource_id" => "e31e9137-97f5-497e-bcd2-34c35169a883",
+               "owner_id" => "7488a646-e31f-11e4-aace-600308960662",
+               "inserted_at" => inserted_at,
+               "updated_at" => updated_at
+             } = json_response(conn, 201)["review"]
+    end
+
+    test "renders errors when data is invalid", %{conn: conn} do
+      conn = post(conn, Routes.review_path(conn, :create), review: @invalid_attrs)
+
+      assert json_response(conn, 422)["errors"] == %{
+               "owner_id" => ["can't be blank"],
+               "rating" => ["can't be blank"],
+               "resource_id" => ["can't be blank"]
+             }
+    end
+
+    test "renders errors when rating is less than 1", %{conn: conn} do
+      conn = post(conn, Routes.review_path(conn, :create), review: %{@invalid_attrs | rating: 0})
+      assert %{"rating" => ["must be greater than 0"]} = json_response(conn, 422)["errors"]
+    end
+
+    test "renders errors when rating is greater than 5", %{conn: conn} do
+      conn = post(conn, Routes.review_path(conn, :create), review: %{@invalid_attrs | rating: 6})
+      assert %{"rating" => ["must be less than 6"]} = json_response(conn, 422)["errors"]
+    end
+
+    test "renders errors when uuid is valid", %{conn: conn} do
+      conn =
+        post(conn, Routes.review_path(conn, :create),
+          review: %{@invalid_attrs | resource_id: "123", owner_id: "123"}
+        )
+
+      assert %{
+               "resource_id" => ["is invalid"],
+               "owner_id" => ["is invalid"]
+             } = json_response(conn, 422)["errors"]
     end
   end
 end

@@ -28,5 +28,4 @@ review_server-*.tar
 /priv/static/
 
 /config/dev.exs
-/config/*.secret.exs
 .env

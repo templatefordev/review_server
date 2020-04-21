@@ -1,4 +1,6 @@
 defmodule Review do
+  @moduledoc false
+
   use ReviewServer.Schema.Base
 
   schema "reviews" do

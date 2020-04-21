@@ -1,4 +1,6 @@
 defmodule Commands.DeleteReview do
+  @moduledoc false
+
   use ReviewServer.Commands.Base
 
   def call(%{review: review}) do

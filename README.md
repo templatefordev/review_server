@@ -1,3 +1,5 @@
+[![pipeline status](https://gitlab.com/multidesk24/review_server/badges/master/pipeline.svg)](https://gitlab.com/multidesk24/review_server/-/commits/master)
+
 # ReviewServer
 
 To start your Phoenix server:

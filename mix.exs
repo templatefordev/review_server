@@ -1,16 +1,22 @@
 defmodule ReviewServer.MixProject do
+  @moduledoc false
+
   use Mix.Project
+
+  @version "0.3.7"
+  @elixir_version "1.10.2"
 
   def project do
     [
       app: :review_server,
-      version: "0.1.0",
-      elixir: "~> 1.5",
+      version: @version,
+      elixir: @elixir_version,
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      releases: releases()
     ]
   end
 
@@ -44,9 +50,10 @@ defmodule ReviewServer.MixProject do
 
       # Added deps
       {:exconstructor, "~> 1.1"},
-      {:scrivener_ecto, "~> 2.3"}
+      {:scrivener_ecto, "~> 2.3"},
 
       # Test deps
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -60,7 +67,17 @@ defmodule ReviewServer.MixProject do
     [
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate", "test"]
+      test: ["ecto.create --quiet", "ecto.migrate", "test"],
+      check_codestyle: ["format --check-formatted", "credo --strict"]
+    ]
+  end
+
+  defp releases do
+    [
+      review_server: [
+        include_executables_for: [:unix],
+        steps: [:assemble, :tar]
+      ]
     ]
   end
 end

@@ -1,4 +1,6 @@
 defmodule Forms.ListReviews do
+  @moduledoc false
+
   use ReviewServer.Forms.Base
 
   schema "" do

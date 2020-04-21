@@ -1,0 +1,136 @@
+image: elixir:1.10.2-alpine
+
+stages:
+  - lint
+  - testing
+  - build
+  - deploy
+
+### Add ENV to gitlab variables and some ENV from config/env.exs ###
+
+# SSH_GITLAB_RSA
+
+# BUILD_HOST
+# BUILD_USER
+# BUILD_AT
+
+# STAGING_HOST
+# STAGING_USER
+# DELIVER_TO
+
+##################################
+
+variables:
+  APP_NAME: review_server
+  RELEASE_TO_KEEP: 5
+
+.lint_test_variables: &lint_test_variables
+  MIX_ENV: "test"
+
+.pg_test_variables: &pg_test_variables
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: "postgres"
+  POSTGRES_DB: "${APP_NAME}_test"
+  POSTGRES_HOST: postgres
+
+.mix_before: &mix_before
+  - mix local.rebar --force
+  - mix local.hex --force
+
+.lint_test_before: &lint_test_before
+  - mix deps.get --only test
+
+.cache_lint_test: &cache_lint_test
+  key: lint_test
+  paths:
+    - deps/
+    - _build
+
+lint:
+  stage: lint
+  variables:
+    <<: *lint_test_variables
+  before_script:
+    - *mix_before
+    - *lint_test_before
+  script:
+    - mix check_codestyle
+  cache:
+    <<: *cache_lint_test
+
+test:
+  stage: testing
+  variables:
+    <<: *lint_test_variables
+    <<: *pg_test_variables
+  services:
+    - postgres:12.2-alpine
+  before_script:
+    - *mix_before
+    - *lint_test_before
+  script:
+    - mix test
+  cache:
+    <<: *cache_lint_test
+    policy: pull
+
+.set_ssh_before: &set_ssh_before
+  - mkdir -p ~/.ssh
+  - echo -e "$SSH_GITLAB_RSA" > ~/.ssh/id_rsa
+  - chmod 600 ~/.ssh/id_rsa
+  - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  - apk update && apk add openssh-client
+
+build_release:
+  stage: build
+  variables:
+    HOST: $BUILD_USER@$BUILD_HOST
+    COPY_PATH: $BUILD_AT/$APP_NAME/$CI_COMMIT_SHA
+    COMMON_ENV: MIX_ENV=prod SECRET_KEY_BASE=$SECRET_KEY_BASE DATABASE_URL=$DATABASE_URL
+  before_script:
+    - *set_ssh_before
+    - apk add rsync
+    - mkdir -p _build/prod && ssh -tt $HOST mkdir -p $COPY_PATH
+    - rsync -r --exclude=.git . $HOST:$COPY_PATH
+    - ssh -tt $HOST "bash -ic 'cd $COPY_PATH; $COMMON_ENV mix do local.rebar --force, local.hex --force'"
+    - ssh -tt $HOST "bash -ic 'cd $COPY_PATH; $COMMON_ENV mix deps.get --only prod'"
+  script:
+    - ssh -tt $HOST "bash -ic 'cd $COPY_PATH; $COMMON_ENV mix do compile, release'"
+    - rsync $HOST:$COPY_PATH/_build/prod/*.tar.gz ./_build/prod
+    - ssh -tt $HOST rm -rf $COPY_PATH
+  artifacts:
+    paths:
+      - "_build/prod/${APP_NAME}-*.tar.gz"
+
+staging:
+  stage: deploy
+  environment: staging
+  variables:
+    HOST: $STAGING_USER@$STAGING_HOST
+    RELEASE_PATH: $DELIVER_TO/$APP_NAME/releases
+    CURRENT_PATH: $DELIVER_TO/$APP_NAME/current
+  before_script:
+    - *set_ssh_before
+    - export RELEASE_FILE=`ls _build/prod`
+    - export RELEASE_NAME=`echo "${RELEASE_FILE%.*.*}"`
+    - ssh -tt $HOST mkdir -p $RELEASE_PATH
+  script:
+    - scp _build/prod/$RELEASE_FILE $HOST:/tmp
+    - ssh -tt $HOST tar -xf /tmp/$RELEASE_FILE -C $RELEASE_PATH --one-top-level
+    - ssh -tt $HOST rm /tmp/$RELEASE_FILE
+    - ssh -tt $HOST rm -f $CURRENT_PATH
+    - ssh -tt $HOST ln -s $RELEASE_PATH/$RELEASE_NAME $CURRENT_PATH
+    - ssh -tt $HOST $CURRENT_PATH/bin/$APP_NAME eval 'Tasks.Release.migrate'
+    - ssh -tt $HOST systemctl restart $APP_NAME
+    - ssh -tt $HOST "cd $RELEASE_PATH; ls -t | tail +`expr $RELEASE_TO_KEEP + 1` | xargs rm -rf"
+  only:
+    - master
+
+production:
+  stage: deploy
+  environment: production
+  script:
+    - echo "production deploy"
+  when: manual
+  only:
+    - master

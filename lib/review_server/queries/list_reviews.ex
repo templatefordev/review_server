@@ -1,7 +1,10 @@
 defmodule Queries.ListReviews do
+  @moduledoc false
+
   use ReviewServer.Queries.Base
 
   defmodule Params do
+    @moduledoc false
     defstruct resource_id: nil,
               page: nil,
               page_size: nil

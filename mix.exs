@@ -3,7 +3,7 @@ defmodule ReviewServer.MixProject do
 
   use Mix.Project
 
-  @version "0.3.7"
+  @version "0.4.7"
   @elixir_version "1.10.2"
 
   def project do

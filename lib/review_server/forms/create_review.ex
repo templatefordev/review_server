@@ -14,6 +14,8 @@ defmodule Forms.CreateReview do
   @optional_fields ~w(comment)a
 
   @doc false
+  @spec changeset(:invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}) ::
+          Ecto.Changeset.t()
   def changeset(params \\ %{}) do
     %__MODULE__{}
     |> cast(params, @required_fields ++ @optional_fields)

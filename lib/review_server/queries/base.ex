@@ -20,6 +20,8 @@ defmodule ReviewServer.Queries.Base do
         |> filter_by_resource_id(options)
       end
 
+      defp filter_by_resource_id(query, %{resource_id: nil}), do: query
+
       defp filter_by_resource_id(query, %{resource_id: resource_id}) do
         query |> where(resource_id: ^resource_id)
       end

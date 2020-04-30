@@ -10,6 +10,7 @@ defmodule Queries.DeleteReviews do
     use ExConstructor
   end
 
+  @spec call([{atom | binary, any}] | %{optional(atom | binary) => any}) :: Ecto.Query.t()
   def call(params) do
     params
     |> Params.new()

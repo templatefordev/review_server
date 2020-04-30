@@ -101,6 +101,8 @@ build_release:
   artifacts:
     paths:
       - "_build/prod/${APP_NAME}-*.tar.gz"
+  only:
+    - master
 
 staging:
   stage: deploy

@@ -10,5 +10,7 @@ defmodule ReviewServerWeb.Router do
 
     resources "/reviews", ReviewController, except: [:new, :edit]
     delete "/reviews", ReviewController, :delete, as: :review_delete_all
+
+    get("/resources/:id/stats", ResourceController, :show)
   end
 end

@@ -28,7 +28,7 @@ defmodule ReviewServerWeb.ReviewController do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.review_path(conn, :show, review))
-      |> render("show.json", review: review)
+      |> render("show.json", review: Repo.preload(review, :resource))
     end
   end
 
@@ -37,7 +37,7 @@ defmodule ReviewServerWeb.ReviewController do
     form = Forms.UpdateReview.changeset(review_params)
 
     with {:ok, %Review{} = review} <- Commands.UpdateReview.call(form, %{review: review}) do
-      render(conn, "show.json", review: review)
+      render(conn, "show.json", review: Repo.preload(review, :resource))
     end
   end
 

@@ -1,5 +1,6 @@
 defmodule ReviewServerWeb.ReviewView do
   use ReviewServerWeb, :view
+  import ReviewServer.Utils.Map
 
   def render("index.json", %{reviews: reviews, meta: meta}) do
     %{
@@ -13,14 +14,19 @@ defmodule ReviewServerWeb.ReviewView do
   end
 
   def render("review.json", %{review: review}) do
-    %{
+    r = %{
       id: review.id,
       rating: review.rating,
       comment: review.comment,
-      resource_id: review.resource_id,
       owner_id: review.owner_id,
       inserted_at: DateTime.to_iso8601(review.inserted_at),
       updated_at: DateTime.to_iso8601(review.updated_at)
     }
+
+    if Ecto.assoc_loaded?(review.resource) do
+      r ||| render_one(review.resource, ReviewServerWeb.ResourceView, "show.json")
+    else
+      r ||| %{resource_id: review.resource_id}
+    end
   end
 end

@@ -101,6 +101,7 @@ build_release:
   artifacts:
     paths:
       - "_build/prod/${APP_NAME}-*.tar.gz"
+    keep_last: $RELEASE_TO_KEEP
   only:
     - master
 

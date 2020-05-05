@@ -200,16 +200,21 @@ defmodule ReviewServerWeb.ReviewControllerTest do
 
   describe "create/2" do
     test "renders review when data is valid", %{conn: conn} do
+      conn = post(conn, Routes.review_path(conn, :create), review: %{@create_attrs | rating: 4})
       conn = post(conn, Routes.review_path(conn, :create), review: @create_attrs)
 
       assert %{
                "id" => id,
                "rating" => 1,
                "comment" => "some comment",
-               "resource_id" => "e31e9137-97f5-497e-bcd2-34c35169a883",
                "owner_id" => "7488a646-e31f-11e4-aace-600308960662",
                "inserted_at" => inserted_at,
-               "updated_at" => updated_at
+               "updated_at" => updated_at,
+               "resource" => %{
+                 "id" => resource_id,
+                 "avg_rating" => "2.50",
+                 "count_reviews" => 2
+               }
              } = json_response(conn, 201)["review"]
     end
 
@@ -258,10 +263,14 @@ defmodule ReviewServerWeb.ReviewControllerTest do
                "id" => ^id,
                "rating" => 5,
                "comment" => "some updated comment",
-               "resource_id" => resource_id,
                "owner_id" => owner_id,
                "inserted_at" => inserted_at,
-               "updated_at" => updated_at
+               "updated_at" => updated_at,
+               "resource" => %{
+                 "id" => resource_id,
+                 "avg_rating" => "5.00",
+                 "count_reviews" => 1
+               }
              } = json_response(conn, 200)["review"]
     end
 

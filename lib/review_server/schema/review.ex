@@ -6,9 +6,10 @@ defmodule Review do
   schema "reviews" do
     field :rating, :integer
     field :comment, :string
-    field :resource_id, Ecto.UUID
     field :owner_id, Ecto.UUID
 
     timestamps()
+
+    belongs_to :resource, ResourceStats, references: :resource_id
   end
 end

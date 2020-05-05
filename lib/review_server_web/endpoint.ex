@@ -11,7 +11,7 @@ defmodule ReviewServerWeb.Endpoint do
   ]
 
   socket "/socket", ReviewServerWeb.UserSocket,
-    websocket: true,
+    websocket: false,
     longpoll: false
 
   # Serve at "/" the static files from "priv/static" directory.
